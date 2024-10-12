@@ -31,8 +31,8 @@ int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
         else if (!(c1 & 0b11100000))
         { // 3 bytes
 
-            char c2 = (unsigned int)fgetc(arquivo_entrada);
-            char c3 = (unsigned int)fgetc(arquivo_entrada);
+            c2 = (unsigned int)fgetc(arquivo_entrada);
+            c3 = (unsigned int)fgetc(arquivo_entrada);
 
             cout = (0b00001111 & c1) << 12;
             cout |= (0b00111111 & c2) << 6;
@@ -41,9 +41,9 @@ int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
         else
         { // 4 bytes
 
-            char c2 = (unsigned int)fgetc(arquivo_entrada);
-            char c3 = (unsigned int)fgetc(arquivo_entrada);
-            char c4 = (unsigned int)fgetc(arquivo_entrada);
+            c2 = (unsigned int)fgetc(arquivo_entrada);
+            c3 = (unsigned int)fgetc(arquivo_entrada);
+            c4 = (unsigned int)fgetc(arquivo_entrada);
 
             cout = (0b00000111 & c1) << 18;
             cout |= (0b00111111 & c2) << 12;
