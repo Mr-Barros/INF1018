@@ -4,12 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "converteutf832.h"
-#define BOM 0x0000FEFF
 
 int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
 {
     unsigned int c1, c2, c3, c4, cout = 0;
-    int bom = BOM;
+    int bom = 0x0000FEFF;
     fwrite(&bom, sizeof(bom), 1, arquivo_saida);
 
     while ((c1 = (unsigned int)fgetc(arquivo_entrada)) != EOF)
@@ -59,27 +58,52 @@ int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
 int convUtf32p8(FILE *arquivo_entrada, FILE *arquivo_saida)
 {
     unsigned int cin;
-    char c1, c2, c3, c4;
+    unsigned char c1, c2, c3, c4;
     unsigned int bom;
     fread(&bom, sizeof(unsigned int), 1, arquivo_entrada);
+    int big_endian;
+    big_endian = (bom == 0xFEFF);
 
-    // primeiro caracter
-    fread(&cin, sizeof(unsigned int), 1, arquivo_entrada);
-    if (cin < 0x80)
-    { // 1 byte
-        c1 = (char)cin;
-    }
-    else if (cin < 0x800)
-    { // 2 bytes
-        c1 = (char)(0x3f & cin);
-        // c2 = (char) ()
-    }
-    else if (cin < 0x10000)
-    { // 3 bytes
-    }
-    else
-    { // 4 bytes
-    }
+    while ((fread(&cin, sizeof(unsigned int), 1, arquivo_entrada)) == 1)
+    {
 
+        if (big_endian)
+        {
+            // cin = reverse cin
+        }
+        if (cin < 0x80)
+        { // 1 byte
+            c1 = (unsigned char)cin;
+            fputc(c1, arquivo_saida);
+        }
+        else if (cin < 0x800)
+        { // 2 bytes
+
+            c2 = (cin >> 6) | 0b11000000;
+            c1 = (cin & 0b00111111) | 0b10000000;
+            fputc(c2, arquivo_saida);
+            fputc(c1, arquivo_saida);
+        }
+        else if (cin < 0x10000)
+        { // 3 bytes
+            c3 = (cin >> 12) | 0b11100000;
+            c2 = ((cin >> 6) & 0b00111111) | 0b10000000;
+            c1 = (cin & 0b00111111) | 0b10000000;
+            fputc(c3, arquivo_saida);
+            fputc(c2, arquivo_saida);
+            fputc(c1, arquivo_saida);
+        }
+        else
+        { // 4 bytes
+            c4 = (cin >> 18) | 0b11110000;
+            c3 = ((cin >> 12) & 0b00111111) | 0b10000000;
+            c2 = ((cin >> 6) & 0b00111111) | 0b10000000;
+            c1 = (cin & 0b00111111) | 0b10000000;
+            fputc(c4, arquivo_saida);
+            fputc(c3, arquivo_saida);
+            fputc(c2, arquivo_saida);
+            fputc(c1, arquivo_saida);
+        }
+    }
     return 1;
 }
