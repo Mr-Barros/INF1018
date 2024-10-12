@@ -5,6 +5,15 @@
 #include <stdlib.h>
 #include "converteutf832.h"
 
+unsigned int inverteOrdemByte(unsigned int i)
+{
+    unsigned int inv = (i & 0xFF) << 24;
+    inv |= (i & 0xFF00) << 8;
+    inv |= (i & 0xFF0000) >> 8;
+    inv |= (i & 0xFF000000) >> 24;
+    return inv;
+}
+
 int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
 {
     unsigned int c1, c2, c3, c4, cout = 0;
@@ -19,7 +28,7 @@ int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
 
             cout = c1;
         }
-        else if (!(c1 & 0b11000000))
+        else if ((c1 & 0b11100000) == 0b11000000)
         { // 2 bytes
 
             c2 = (unsigned int)fgetc(arquivo_entrada);
@@ -27,7 +36,7 @@ int convUtf8p32(FILE *arquivo_entrada, FILE *arquivo_saida)
             cout = (0b00011111 & c1) << 6;
             cout |= (0b00111111 & c2);
         }
-        else if (!(c1 & 0b11100000))
+        else if ((c1 & 0b11110000) == 0b11100000)
         { // 3 bytes
 
             c2 = (unsigned int)fgetc(arquivo_entrada);
@@ -69,7 +78,7 @@ int convUtf32p8(FILE *arquivo_entrada, FILE *arquivo_saida)
 
         if (big_endian)
         {
-            // cin = reverse cin
+            cin = inverteOrdemByte(cin);
         }
         if (cin < 0x80)
         { // 1 byte
