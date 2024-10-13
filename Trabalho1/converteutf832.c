@@ -70,12 +70,17 @@ int convUtf32p8(FILE *arquivo_entrada, FILE *arquivo_saida)
     unsigned char c1, c2, c3, c4;
     unsigned int bom;
     fread(&bom, sizeof(unsigned int), 1, arquivo_entrada);
-    int big_endian;
-    big_endian = (bom == 0xFEFF);
+    int big_endian, little_endian;
+    big_endian = (bom == 0xFFFE0000);
+    little_endian = (bom == 0x0000FEFF);
+    if (!(big_endian || little_endian))
+    {
+        fprintf(stderr, "BOM inválido!\n");
+        return -1;
+    }
 
     while ((fread(&cin, sizeof(unsigned int), 1, arquivo_entrada)) == 1)
     {
-
         if (big_endian)
         {
             cin = inverteOrdemByte(cin);
