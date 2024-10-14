@@ -4,3 +4,29 @@ Luiz Felipe Neves Batista - 2311024
 
 Turma 3WC
 
+Ambas as funções funcionam como esperado.
+
+No início da função convUtf8p32, devemos gravar o caracter BOM (0x0000FEFF) no arquivo de saída, para indicar que ele está 
+codificado como little endian.
+A cada iteração do loop que converte um caracter, devemos zerar a variável cout para evitar que restos de operações anteriores 
+corrompam o caracter resultante.
+
+No início da função convUtf32p8, estamos lendo os primeiros 4 bytes do arquivo e guardando-os na variável bom. Em seguida, 
+comparamos com os valores 0xFFFE0000 e 0x0000FEFF para determinar se o arquivo está codificado em ordem big endian ou little 
+endian, respectivamente. Se o caracter não corresponder a nenhum destes valores, gravamos uma mensagem de erro em stderr 
+indicando que o arquivo não possui um caracter BOM válido. No caso do arquivo ser big endian, utilizamos a função auxiliar 
+inverteOrdemByte para inverter a ordem dos bytes de cada caracter lido.
+
+Para testar erros de E/S, utilizamos a função ferror após cada operação de entrada/saída (fread/fwrite/fgetc/fputc).
+Se o valor retornado pela ferror for diferente de 0, gravamos uma mensagem em stderr indicando qual erro ocorreu 
+(leitura ou gravação), e a função retorna -1.
+
+Observação: ao ler ou escrever o caracter BOM no arquivo UTF-32, sabemos que se a codificação for little endian, 
+os bytes aparecerão na seguinte ordem:
+
+    FF FE 00 00
+
+Se a codificação for big endian, esses bytes aparecerão na ordem contrária. Porém, devemos prestar atenção, pois 
+ao ler os bytes FF FE 00 00, uma máquina little endian irá interpretá-los como o número 0x0000FEFF. Portanto, devemos 
+considerar o BOM como sendo o número 0x0000FEFF para little endian e 0xFFFE0000 para big endian, já que este trabalho 
+foi realizado com uma máquina little endian.
