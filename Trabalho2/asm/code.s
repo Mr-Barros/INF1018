@@ -8,6 +8,7 @@ code:
     
     movl    0x1, %edi
 
+
     movq    0x00000000000000da, %rax
     call    *%rax
 

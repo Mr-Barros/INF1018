@@ -3,6 +3,7 @@
 #include "cria_func.h"
 
 typedef int (*func_ptr_recebe_nada)();
+typedef int (*func_ptr_recebe_int)(int x);
 typedef int (*func_ptr_recebe_void_e_size_t)(void *candidata, size_t n);
 
 char fixa[] = "quero saber se a outra string é um prefixo dessa";
@@ -12,28 +13,50 @@ int mult(int x, int y)
     return x * y;
 }
 
-int retorna2(void){
-    return 2;
+int retorna_igual(int x){ // tem que ter pelo menos um parâmetro
+    return x;
 }
 
-void teste1(void)
+
+
+void teste_retorna_igual_original(void)
 {
     DescParam params[1];
-    func_ptr_recebe_nada f_retorna2;
+    func_ptr_recebe_int f_retorna_igual;
     int i;
     unsigned char codigo[500];
 
-    params[0].tipo_val = INT_PAR; /* a nova função passa para mult um valor inteiro */
-    params[0].orig_val = IND;     /* que é o valor corrente da variavel i */
-    params[0].valor.v_ptr = &i;
+    params[0].tipo_val = INT_PAR; /* a nova função passa para retorna_igual um valor inteiro */
+    params[0].orig_val = PARAM;     /* que é o mesmo valor que foi passado para a função */
 
-    cria_func(retorna2, params, 2, codigo);
-    f_retorna2 = (func_ptr_recebe_nada)codigo;
+    cria_func(retorna_igual, params, 1, codigo);
+    f_retorna_igual = (func_ptr_recebe_int)codigo;
 
     for (i = 1; i <= 10; i++)
     {
-        fprintf(stderr, "hello world\n");
-        printf("%d\n", f_retorna2()); /* a nova função não recebe argumentos */
+        fprintf(stderr, "chamando...\n");
+        printf("%d\n", f_retorna_igual(i)); /* a nova função recebe 1 argumento */
+    }
+}
+
+void teste_retorna_igual_constante(void)
+{
+    DescParam params[1];
+    func_ptr_recebe_nada f_retorna_igual;
+    int i;
+    unsigned char codigo[500];
+
+    params[0].tipo_val = INT_PAR; /* a nova função passa para retorna_igual um valor inteiro */
+    params[0].orig_val = FIX;     /* que é uma constante */
+    params[0].valor.v_int = 42;
+
+    cria_func(retorna_igual, params, 1, codigo);
+    f_retorna_igual = (func_ptr_recebe_nada)codigo;
+
+    for (i = 1; i <= 10; i++)
+    {
+        fprintf(stderr, "chamando...\n");
+        printf("%d\n", f_retorna_igual()); /* a nova função não recebe argumento */
     }
 }
 
@@ -90,7 +113,7 @@ void teste3(void)
 
 int main(void)
 {
-    teste1();
+    teste_retorna_igual_original();
     //teste2();
     //teste3();
 }
