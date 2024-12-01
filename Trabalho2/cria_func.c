@@ -21,7 +21,7 @@ void cria_final(unsigned char codigo[], int* pos);
  * @param n Número de parâmetros no vetor params
  * @param codigo O código, que deve vir vazio. Será escrito nesse vetor uma sequência de bytes que correspondem a uma função em assembly.
  * Deve ser feito um type cast nesse vetor para que seja reconhecido como um ponteiro para função.
- * Essa função receberá todos os parâmetros que possuírem OrigemValor = PARAM de acordo com DescParam
+ * Essa função receberá todos os parâmetros que possuírem OrigemValor = PARAM de acordo com params. Os outros serão escolhidos com base nas definições do params
  */
 void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
 {
