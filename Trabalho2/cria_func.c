@@ -7,9 +7,13 @@
  * cria uma função que amarra certos parâmetros de outra função, alterando o vetor "código" para 
  * que possua o código da nova função.
  * @param f ponteiro para a função original
- * @param params vetor de parâmetros de tipo DescParam
- * @param n número de parâmetros passados
- * @param codigo o código, que deve vir vazio
+ * @param params vetor de parâmetros de tipo DescParam. Deve conter um elemento do vetor para cada parâmetro na função original, para especificar como
+ * esse parâmetro será escolhido: simplesmente repassado à função original, determinado por uma constante, ou obtido a partir de uma variável
+ * em tempo de execução.
+ * @param n número de parâmetros no vetor params
+ * @param codigo o código, que deve vir vazio. Será escrito nesse vetor uma sequência de bytes que correspondem a uma função em assembly.
+ * Deve ser feito um type cast nesse vetor para que seja reconhecido como um ponteiro para função.
+ * Essa função receberá todos os parâmetros que possuírem OrigemValor = PARAM de acordo com DescParam
  */
 void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
 {
