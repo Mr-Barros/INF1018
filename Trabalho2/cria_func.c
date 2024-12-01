@@ -7,6 +7,7 @@
 typedef unsigned char byte;
 
 void cria_prologo(unsigned char codigo[], int* pos);
+void primeiro_parametro(unsigned char codigo[], int* pos, DescParam param, int* param_atual);
 void cria_call_na_func(unsigned char codigo[], int* pos, void* f);
 void cria_final(unsigned char codigo[], int* pos);
 
@@ -26,10 +27,12 @@ void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
 {
     
     int pos = 0;            // posicao atual da escrita no vetor código
+    int param_atual = 1;    // indica qual parâmetro de codigo é o próximo a ser configurado (1 - %rdi, 2 - %rsi, 3 - %rdx)
 
     cria_prologo(codigo, &pos);
 
-
+    // params sempre tem pelo menos 1 parâmetro
+    primeiro_parametro(codigo, &pos, params[0], &param_atual);
 
     cria_call_na_func(codigo, &pos, f);
 
@@ -59,6 +62,23 @@ void cria_prologo(unsigned char codigo[], int* pos)
     }
 
     *pos += n;
+
+    return;
+}
+
+void primeiro_parametro(unsigned char codigo[], int* pos, DescParam param, int* param_atual)
+{
+    switch (param.orig_val)
+    {
+    case PARAM:
+        // nesse caso, %rdi / %esi já terá o valor correto, recebido pela função criada
+        (*param_atual)++;   // próximo parâmetro: %rsi
+        break;
+    case FIX:
+        break;
+    case IND:
+    }
+    return;
 }
 
 void cria_call_na_func(unsigned char codigo[], int* pos, void* f)
@@ -88,6 +108,8 @@ void cria_call_na_func(unsigned char codigo[], int* pos, void* f)
     }
 
     *pos += n;
+
+    return;
 }
 
 void cria_final(unsigned char codigo[], int* pos)
@@ -105,4 +127,6 @@ void cria_final(unsigned char codigo[], int* pos)
     }
 
     *pos += n;
+
+    return;
 }
