@@ -9,6 +9,7 @@ typedef unsigned char byte;
 
 void cria_prologo(unsigned char codigo[], int *pos);
 void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual);
+void segundo_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual);
 void cria_call_na_func(unsigned char codigo[], int *pos, void *f);
 void cria_final(unsigned char codigo[], int *pos);
 
@@ -38,7 +39,7 @@ void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
     cria_call_na_func(codigo, &pos, f);
 
     cria_final(codigo, &pos);
-
+    
     for (int i = 0; i < pos; i++)
     {
         fprintf(stderr, "%02X ", codigo[i]);
@@ -64,13 +65,16 @@ void cria_prologo(unsigned char codigo[], int *pos)
     return;
 }
 
+//! Não pode passar pra %rdi
 void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual)
 {
+    int n;
     switch (param.orig_val)
     {
     case PARAM:
-        // nesse caso, %rdi / %esi já terá o valor correto, recebido pela função criada
-        (*param_atual)++; // próximo parâmetro: %rsi SERÁ???? TALVEZ TENHA QUE NÃO ATUALIZAR, PRA QUE O segundo_parametro POSSA PEGAR DO RDI
+        // nesse caso, %rdi / %edi já terá o valor correto, recebido pela função criada
+        n = 0;
+        (*param_atual)++; // próximo parâmetro: %rsi
         break;
     case FIX:
         if (param.tipo_val == INT_PAR)
@@ -81,13 +85,10 @@ void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *
             byte b3 = inteiro >> 16;
             byte b4 = inteiro >> 24;
             byte primeiro_param[] = {
-                0x8b, 0x3c, 0x25, // movl para edi
-                b1, b2, b3, b4    // bytes do inteiro
+                0xbf, b1, b2, b3, b4    // movl     inteiro, %edi
             };
-            int n = 7;
+            n = 5;
             memcpy(codigo + (*pos), primeiro_param, n);
-            *pos += n;
-            (*param_atual)++;
         }
         else // parâmetro é pointer
         {
@@ -101,20 +102,50 @@ void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *
             byte b7 = (long)ptr >> 48;
             byte b8 = (long)ptr >> 56;
             byte primeiro_param[] = {
-                0x8b, 0x3c, 0x25, // movl para edi
-                b1, b2, b3, b4    // bytes do inteiro
+                0x48, 0xbf, b1, b2, b3, b4, b5, b6, b7, b8 // movabs   ptr, %rdi
             };
-            int n = 7;
+            n = 10;
             memcpy(codigo + (*pos), primeiro_param, n);
-            *pos += n;
-            (*param_atual)++;
         }
 
         break;
     case IND:
+        void* ptr = param.valor.v_ptr;
+        byte b1 = (long)ptr;
+        byte b2 = (long)ptr >> 8;
+        byte b3 = (long)ptr >> 16;
+        byte b4 = (long)ptr >> 24;
+        byte b5 = (long)ptr >> 32;
+        byte b6 = (long)ptr >> 40;
+        byte b7 = (long)ptr >> 48;
+        byte b8 = (long)ptr >> 56;
+        if (param.tipo_val == INT_PAR)
+        {
+            byte primeiro_param[] = {
+                0x49, 0xbb, b1, b2, b3, b4, b5, b6, b7, b8, // movabs   ptr, %r11
+                0x41, 0x8b, 0x3b                            // movl     (%r11), %edi
+            };
+            n = 13;
+            memcpy(codigo + (*pos), primeiro_param, n);
+        }
+        else // parâmetro é pointer
+        {
+            byte primeiro_param[] = {
+                0x49, 0xbb, b1, b2, b3, b4, b5, b6, b7, b8, // movabs   ptr, %r11
+                0x49, 0x8b, 0x3b                            // movq     (%r11), %rdi
+            };
+            n = 13;
+            memcpy(codigo + (*pos), primeiro_param, n);
+        }
         break;
     }
+    *pos += n;
     return;
+}
+
+void segundo_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual)
+{
+
 }
 
 void cria_call_na_func(unsigned char codigo[], int *pos, void *f)
