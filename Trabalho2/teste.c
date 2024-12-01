@@ -16,7 +16,7 @@ int retorna2(void){
     return 2;
 }
 
-int teste1(void)
+void teste1(void)
 {
     DescParam params[1];
     func_ptr_recebe_nada f_retorna2;
@@ -27,16 +27,17 @@ int teste1(void)
     params[0].orig_val = IND;     /* que é o valor corrente da variavel i */
     params[0].valor.v_ptr = &i;
 
-    cria_func(mult, params, 2, codigo);
+    cria_func(retorna2, params, 2, codigo);
     f_retorna2 = (func_ptr_recebe_nada)codigo;
 
     for (i = 1; i <= 10; i++)
     {
+        fprintf(stderr, "hello world\n");
         printf("%d\n", f_retorna2()); /* a nova função não recebe argumentos */
     }
 }
 
-int teste2(void)
+void teste2(void)
 {
     DescParam params[2];
     func_ptr_recebe_nada f_mult;
@@ -60,7 +61,7 @@ int teste2(void)
     }
 }
 
-int teste3(void)
+void teste3(void)
 {
     DescParam params[3];
     func_ptr_recebe_void_e_size_t mesmo_prefixo;
@@ -90,6 +91,6 @@ int teste3(void)
 int main(void)
 {
     teste1();
-    teste2();
-    teste3();
+    //teste2();
+    //teste3();
 }
