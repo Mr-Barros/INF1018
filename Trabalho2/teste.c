@@ -87,8 +87,6 @@ int teste3(void)
     printf("'%s' tem mesmo prefixo-%d de '%s'? %s\n", s, tam, fixa, mesmo_prefixo(s, tam) ? "NAO" : "SIM");
 }
 
-int teste1
-
 int main(void)
 {
     teste1();
