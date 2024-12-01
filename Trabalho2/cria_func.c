@@ -4,7 +4,7 @@
 #include "cria_func.h"
 
 /**
- * cria uma função que amarra certos parâmetros de outra função, alterando o vetor "código" para 
+ * cria uma função que amarra certos parâmetros de outra função, alterando o vetor "código" para
  * que possua o código da nova função.
  * @param f ponteiro para a função original
  * @param params vetor de parâmetros de tipo DescParam. Deve conter um elemento do vetor para cada parâmetro na função original, para especificar como
@@ -18,10 +18,10 @@
 void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
 {
     unsigned char codigo_vetor[] = {
-        0x55,               // pushq   %rbp
-        0x48, 0x89, 0xe5,   // movq    %rsp,%rbp
-        0xff, 0xd7,         // 
-    }; 
+        0x55,             // pushq   %rbp
+        0x48, 0x89, 0xe5, // movq    %rsp,%rbp
+        0xff, 0xd7,       // call *%rdi
+    };
     for (int i = 0; i < 4; i++)
     {
         codigo[i] = prologo[i];
@@ -34,10 +34,14 @@ void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
         codigo[i] = call_na_func[i];
     }
 
-    unsigned char final[] = {0xc9, 0xc3};
+    unsigned char final[] = {
+        0xc9, // leave
+        0xc3  // ret
+    };
     for (int i = 0; i < 2; i++)
     {
         codigo[i] = prologo[i];
     }
+
     return;
 }
