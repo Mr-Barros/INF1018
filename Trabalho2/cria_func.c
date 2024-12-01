@@ -8,8 +8,8 @@
 typedef unsigned char byte;
 
 void cria_prologo(unsigned char codigo[], int *pos);
-void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual);
-void segundo_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual);
+void guarda_parametro(unsigned char codigo[], int *pos, DescParam param, int *reg_leitura, int *reg_escrita);
+void prepara_parametros(unsigned char codigo[], int *pos);
 void cria_call_na_func(unsigned char codigo[], int *pos, void *f);
 void cria_final(unsigned char codigo[], int *pos);
 
@@ -29,21 +29,21 @@ void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
 {
 
     int pos = 0;         // posicao atual da escrita no vetor código
-    int param_atual = 1; // indica qual parâmetro de codigo é o próximo a ser configurado (1 - %rdi, 2 - %rsi, 3 - %rdx)
+    int reg_leitura = 1; // indica o registrador a ser lido quando o parametro for do tipo PARAM (1 - %rdi, 2 - %rsi, 3 - %rdx)
+    int reg_escrita = 1; // indica o registrador que vai guardar o parâmetro respectivo da função original (1 - %r8, 2 - %r9, 3 - %r10)
 
     cria_prologo(codigo, &pos);
 
-    // params sempre tem pelo menos 1 parâmetro
-    primeiro_parametro(codigo, &pos, params[0], &param_atual);
+    for (int i = 0; i < n; i++)
+    {
+        guarda_parametro(codigo, &pos, params[i], &reg_leitura, &reg_escrita);
+    }
+
+    prepara_parametros(codigo, &pos);
 
     cria_call_na_func(codigo, &pos, f);
 
     cria_final(codigo, &pos);
-    
-    for (int i = 0; i < pos; i++)
-    {
-        fprintf(stderr, "%02X ", codigo[i]);
-    }
 
     return;
 }
@@ -65,18 +65,60 @@ void cria_prologo(unsigned char codigo[], int *pos)
     return;
 }
 
-//! Não pode passar pra %rdi
-void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual)
+void guarda_parametro(unsigned char codigo[], int *pos, DescParam param, int *reg_leitura, int *reg_escrita)
 {
     int n;
+    byte reg;
     switch (param.orig_val)
     {
     case PARAM:
-        // nesse caso, %rdi / %edi já terá o valor correto, recebido pela função criada
-        n = 0;
-        (*param_atual)++; // próximo parâmetro: %rsi
+        byte combinacao_regs;
+        if ((*reg_leitura == 1) && (*reg_escrita == 1))
+        {
+            combinacao_regs = 0xf8;
+        }
+        else if ((*reg_leitura == 2) && (*reg_escrita == 2)) 
+        {
+            combinacao_regs = 0xf1;
+        }
+        else if ((*reg_leitura == 3) && (*reg_escrita == 3)) 
+        {
+            combinacao_regs = 0xd2;
+        }
+        else if ((*reg_leitura == 1) && (*reg_escrita == 2))
+        {
+            combinacao_regs = 0xf9;
+        }
+        else if ((*reg_leitura == 1) && (*reg_escrita == 3))
+        {
+            combinacao_regs = 0xfa;
+        }
+        else if ((*reg_leitura == 2) && (*reg_escrita == 3))
+        {
+            combinacao_regs = 0xf2;
+        }
+
+        byte param_param[] = { // param, param param param param paraaaaam pararararam
+            0x49, 0x89, combinacao_regs // movq reg_leitura, reg_escrita
+        };
+        n = 3;
+        memcpy(codigo + (*pos), param_param, n);
+        
+        (*reg_leitura)++;
         break;
     case FIX:
+        if (*reg_escrita == 1) 
+        {
+            reg = 0xb8; // %r8
+        }
+        else if (*reg_escrita == 2)
+        {
+            reg = 0xb9; // %r9
+        }
+        else 
+        {
+            reg = 0xba; // %r10
+        }
         if (param.tipo_val == INT_PAR)
         {
             int inteiro = param.valor.v_int;
@@ -84,10 +126,11 @@ void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *
             byte b2 = inteiro >> 8;
             byte b3 = inteiro >> 16;
             byte b4 = inteiro >> 24;
+
             byte primeiro_param[] = {
-                0xbf, b1, b2, b3, b4    // movl     inteiro, %edi
+                0x41, reg, b1, b2, b3, b4    // movl     inteiro, reg
             };
-            n = 5;
+            n = 6;
             memcpy(codigo + (*pos), primeiro_param, n);
         }
         else // parâmetro é pointer
@@ -101,11 +144,11 @@ void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *
             byte b6 = (long)ptr >> 40;
             byte b7 = (long)ptr >> 48;
             byte b8 = (long)ptr >> 56;
-            byte primeiro_param[] = {
-                0x48, 0xbf, b1, b2, b3, b4, b5, b6, b7, b8 // movabs   ptr, %rdi
+            byte param_fix[] = {
+                0x49, reg, b1, b2, b3, b4, b5, b6, b7, b8 // movabs   ptr, reg
             };
             n = 10;
-            memcpy(codigo + (*pos), primeiro_param, n);
+            memcpy(codigo + (*pos), param_fix, n);
         }
 
         break;
@@ -119,33 +162,57 @@ void primeiro_parametro(unsigned char codigo[], int *pos, DescParam param, int *
         byte b6 = (long)ptr >> 40;
         byte b7 = (long)ptr >> 48;
         byte b8 = (long)ptr >> 56;
+
+        if (*reg_escrita == 1) 
+        {
+            reg = 0x03; // %r8
+        }
+        else if (*reg_escrita == 2)
+        {
+            reg = 0x0b; // %r9
+        }
+        else 
+        {
+            reg = 0x13; // %r10
+        }
+
+        byte instr_tipo;
         if (param.tipo_val == INT_PAR)
         {
-            byte primeiro_param[] = {
-                0x49, 0xbb, b1, b2, b3, b4, b5, b6, b7, b8, // movabs   ptr, %r11
-                0x41, 0x8b, 0x3b                            // movl     (%r11), %edi
-            };
-            n = 13;
-            memcpy(codigo + (*pos), primeiro_param, n);
+            instr_tipo = 0x45;
         }
         else // parâmetro é pointer
         {
-            byte primeiro_param[] = {
-                0x49, 0xbb, b1, b2, b3, b4, b5, b6, b7, b8, // movabs   ptr, %r11
-                0x49, 0x8b, 0x3b                            // movq     (%r11), %rdi
-            };
-            n = 13;
-            memcpy(codigo + (*pos), primeiro_param, n);
+            instr_tipo = 0x4d;
         }
+
+        byte param_ind[] = {
+            0x49, 0xbb, b1, b2, b3, b4, b5, b6, b7, b8, // movabs   ptr, %r11
+            instr_tipo, 0x8b, reg                       // mov(instr_tipo)     (%r11), reg
+        };
+        n = 13;
+        memcpy(codigo + (*pos), param_ind, n);
         break;
     }
     *pos += n;
+    (*reg_escrita)++;
     return;
 }
 
-void segundo_parametro(unsigned char codigo[], int *pos, DescParam param, int *param_atual)
+void prepara_parametros(unsigned char codigo[], int *pos)
 {
+    int n = 9; // tamanho do vetor prepara
+    byte prepara[] = {
+        0x4c, 0x89, 0xc7,            	// movq    %r8, %rdi
+        0x4c, 0x89, 0xce,             	// movq    %r9, %rsi
+        0x4c, 0x89, 0xd2,               // movq    %r10, %rdx
+    };
 
+    // para cada posição de prepara, adiciona o byte na posição adequada de codigo
+    memcpy(codigo + (*pos), prepara, n);
+
+    *pos += n;
+    return;
 }
 
 void cria_call_na_func(unsigned char codigo[], int *pos, void *f)

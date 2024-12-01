@@ -185,6 +185,6 @@ int main(void)
     teste_retorna_igual_constante_ponteiro();
     teste_retorna_igual_ind_inteiro();
     teste_retorna_igual_ind_ponteiro();
-    // teste2();
-    // teste3();
+    teste2();
+    teste3();
 }
