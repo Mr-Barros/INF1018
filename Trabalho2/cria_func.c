@@ -17,21 +17,23 @@
  */
 void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
 {
-    unsigned char codigo_vetor[] = {
+    unsigned char prologo[] = {
         0x55,             // pushq   %rbp
         0x48, 0x89, 0xe5, // movq    %rsp,%rbp
-        0xff, 0xd7,       // call *%rdi
+
     };
     for (int i = 0; i < 4; i++)
     {
         codigo[i] = prologo[i];
     }
 
-    unsigned char call_na_func[] = {};
+    unsigned char call_na_func[] = {
+        0xff, 0xd7, // call *%rdi
+    };
 
-    for (int i = 4; i < 6; i++)
+    for (int i = 0; i < 2; i++)
     {
-        codigo[i] = call_na_func[i];
+        codigo[i+4] = call_na_func[i];
     }
 
     unsigned char final[] = {
@@ -40,7 +42,7 @@ void cria_func(void *f, DescParam params[], int n, unsigned char codigo[])
     };
     for (int i = 0; i < 2; i++)
     {
-        codigo[i] = prologo[i];
+        codigo[i+6] = final[i];
     }
 
     return;
