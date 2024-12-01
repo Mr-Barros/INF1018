@@ -7,7 +7,7 @@
  * cria uma função que amarra certos parâmetros de outra função, alterando o vetor "código" para 
  * que possua o código da nova função.
  * @param f ponteiro para a função original
- * @param params lista de parâmetros de tipo DescParam
+ * @param params vetor de parâmetros de tipo DescParam
  * @param n número de parâmetros passados
  * @param codigo o código, que deve vir vazio
  */
