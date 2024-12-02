@@ -4,3 +4,87 @@ Luiz Felipe Neves Batista - 2311024
 
 Turma 3WC
 
+
+Funções originais:
+
+int mult(int x, int y)
+
+    Descrição: Recebe dois números inteiros x e y e retorna o produto de ambos (x * y).
+
+int retorna_igual(int x)
+
+    Descrição: Recebe um único inteiro x e retorna o mesmo valor.
+
+int retorna_igual_ponteiro(void *x)
+
+    Descrição: Recebe um ponteiro void *x e retorna o valor do ponteiro convertido para inteiro.
+
+
+
+Testes:
+
+Todos os testes foram concluídos com sucesso.
+
+
+Teste: teste_retorna_igual_original
+
+    Descrição: Este teste cria uma função que recebe um inteiro como argumento e retorna o mesmo valor, utilizando a função original retorna_igual.
+    Parâmetros: 1 parâmetro de tipo INT e origem PARAM. 
+    Comportamento esperado: A função gerada deve retornar exatamente o valor passado como argumento, para valores de i de 1 a 10.
+    Saída do programa: A saída exibe os números de 1 a 10, cada um em uma nova linha.
+
+Teste: teste_retorna_igual_constante_inteiro
+
+    Descrição: Este teste cria uma função que sempre retorna o valor constante 42, independentemente da entrada, utilizando a função retorna_igual.
+    Parâmetros: 1 parâmetro de tipo INT e origem FIX.
+    Comportamento esperado: Para todas as chamadas da função, o valor retornado deve ser 42.
+    Saída do programa: A saída mostrará 42 repetido em 10 linhas consecutivas.
+
+Teste: teste_retorna_igual_constante_ponteiro
+
+    Descrição: Este teste cria uma função que sempre retorna o valor do ponteiro constante (void*)0x7, utilizando a função retorna_igual_ponteiro.
+    Parâmetros: 1 parâmetro de tipo PTR origem FIX.
+    Comportamento esperado: Para todas as chamadas, a função deve retornar 7 (interpretação do ponteiro como um inteiro).
+    Saída do programa: A saída exibirá 7 repetido 10 vezes.
+
+Teste: teste_retorna_igual_ind_inteiro
+
+    Descrição: Este teste cria uma função que retorna o valor da variável i (passado indiretamente) como argumento para retorna_igual.
+    Parâmetros: 1 parâmetro de tipo INT e origem IND.
+    Comportamento esperado: A função gerada deve retornar os valores de 1 a 10, pois i é atualizado em cada iteração.
+    Saída do programa: A saída mostrará os números de 1 a 10, linha por linha.
+
+Teste: teste_retorna_igual_ind_ponteiro
+
+    Descrição: Este teste cria uma função que retorna o valor da variável i (um ponteiro) como argumento para retorna_igual_ponteiro.
+    Parâmetros: 1 parâmetro de tipo PTR e origem IND.
+    Comportamento esperado: A função gerada deve retornar os valores de 1 a 10, pois i é atualizado em cada iteração.
+    Saída do programa: A saída mostrará os números de 1 a 10, linha por linha.
+
+Teste: teste_mult_ind_fix
+
+    Descrição: Este teste cria uma função que multiplica a variável i (passada indiretamente) pelo valor fixo 10, utilizando a função mult.
+    Parâmetros: 2 parâmetros, o primeiro de tipo INT e origem IND, e o segundo de tipo INT e origem FIX.
+    Comportamento esperado: A função gerada deve retornar 10 * i para valores de i de 1 a 10.
+    Saída do programa: A saída exibirá os valores 10, 20, ..., até 100, linha por linha.
+
+Teste: teste_mult_fix_param
+
+    Descrição: Este teste cria uma função que multiplica um valor constante 10 pelo valor passado como parâmetro, utilizando a função mult.
+    Parâmetros: 2 parâmetros, o primeiro de tipo INT e origem FIX, e o segundo de tipo INT e origem PARAM.
+    Comportamento esperado: A função gerada deve retornar 10 * i, onde i é o valor do parâmetro fornecido.
+    Saída do programa: A saída mostrará os valores 10, 20, ..., até 100, linha por linha.
+
+Teste: teste_memcmp_fix_param_param
+
+    Descrição: Este teste verifica se uma string fornecida como parâmetro tem o mesmo prefixo que a string fixa fixa, utilizando a função memcmp.
+    Parâmetros: 3 parâmetros, o primeiro de tipo PTR e origem FIX, o segundo de tipo PTR e origem PARAM e o terceiro do tipo INT e origem PARAM.
+    Comportamento esperado: A saída indicará SIM se o prefixo coincide, e NAO caso contrário, para diferentes valores de comprimento (tam) da comparação.
+    Saída do programa: A saída mostrará mensagens confirmando ou negando a coincidência do prefixo para os casos testados.
+
+Teste: teste_memcmp_ind_fix_param
+
+    Descrição: Este teste verifica se uma string apontada pela variável dinâmica stringdin tem o mesmo prefixo que a string constante s, utilizando memcmp.
+    Parâmetros: 3 parâmetros, o primeiro de tipo PTR e origem IND, o segundo de tipo PTR e origem FIX e o terceiro do tipo INT e origem PARAM.
+    Comportamento esperado: A saída indicará SIM ou NAO para a coincidência do prefixo, dependendo do conteúdo de stringdin e do comprimento especificado.
+    Saída do programa: A saída mostrará mensagens para os dois casos (stringdin com valores "queello" e "quero") indicando se o prefixo coincide.
